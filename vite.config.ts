@@ -1,7 +1,7 @@
 ﻿import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: './', // Ensures assets load correctly on GitHub Pages sub-paths
+  base: '/julia-set-explorer/',
   build: {
     target: 'esnext',
     outDir: 'dist',

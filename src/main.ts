@@ -1,6 +1,5 @@
-﻿import { DATASET_CATALOG, DatasetEntry } from './catalog';
+﻿import { DATASET_CATALOG } from './catalog';
 import { Complex } from './complex';
-import { computeBoundaryPoints } from './inverse-engine';
 import { VERTEX_SHADER_SRC, FRAGMENT_SHADER_SRC } from './shaders';
 
 class JuliaApp {
@@ -22,10 +21,6 @@ class JuliaApp {
   private lastMouseY = 0;
   private activeDatasetIndex = 3; // J_TEST04 (Douady's Rabbit)
 
-  // Boundary Overlay 2D Buffer
-  private boundaryPoints: Float32Array | null = null;
-  private boundaryDirty = true;
-
   // Animation State
   private isAnimating = false;
   private animTime = 0;
@@ -37,6 +32,7 @@ class JuliaApp {
   private uZoomLoc!: WebGLUniformLocation;
   private uMaxItersLoc!: WebGLUniformLocation;
   private uPaletteModeLoc!: WebGLUniformLocation;
+  private uRenderModeLoc!: WebGLUniformLocation;
   private uTimeLoc!: WebGLUniformLocation;
 
   // Performance stats
@@ -84,6 +80,7 @@ class JuliaApp {
     this.uZoomLoc = gl.getUniformLocation(program, 'u_zoom')!;
     this.uMaxItersLoc = gl.getUniformLocation(program, 'u_max_iters')!;
     this.uPaletteModeLoc = gl.getUniformLocation(program, 'u_palette_mode')!;
+    this.uRenderModeLoc = gl.getUniformLocation(program, 'u_render_mode')!;
     this.uTimeLoc = gl.getUniformLocation(program, 'u_time')!;
   }
 
@@ -130,14 +127,12 @@ class JuliaApp {
     sliderCr.addEventListener('input', () => {
       this.c.re = parseFloat(sliderCr.value);
       valCr.textContent = this.c.re.toFixed(4);
-      this.boundaryDirty = true;
       this.updateHud();
     });
 
     sliderCi.addEventListener('input', () => {
       this.c.im = parseFloat(sliderCi.value);
       valCi.textContent = this.c.im.toFixed(4);
-      this.boundaryDirty = true;
       this.updateHud();
     });
 
@@ -168,7 +163,6 @@ class JuliaApp {
       modeGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
       target.classList.add('active');
       this.renderMode = target.getAttribute('data-mode') as any;
-      this.boundaryDirty = true;
     });
 
     // Sidebar Toggle
@@ -207,14 +201,14 @@ class JuliaApp {
 
     DATASET_CATALOG.forEach((item, idx) => {
       const card = document.createElement('div');
-      card.className = dataset-card ;
-      card.innerHTML = 
-        <div class=title-line>
-          <strong>. </strong>
-          <span class=code></span>
+      card.className = 'dataset-card';
+      card.innerHTML = `
+        <div class="title-line">
+          <strong>${idx + 1}. ${item.title}</strong>
+          <span class="code">${item.filename}</span>
         </div>
-        <div class=sub-line></div>
-      ;
+        <div class="sub-line">${item.classification}</div>
+      `;
 
       card.addEventListener('click', () => {
         this.selectDataset(idx);
@@ -232,7 +226,6 @@ class JuliaApp {
     this.maxIters = entry.maxIters;
     this.center = [0.0, 0.0];
     this.zoom = 1.0;
-    this.boundaryDirty = true;
 
     // Update UI controls
     (document.getElementById('slider-cr') as HTMLInputElement).value = this.c.re.toString();
@@ -242,7 +235,7 @@ class JuliaApp {
     document.getElementById('val-cr')!.textContent = this.c.re.toFixed(4);
     document.getElementById('val-ci')!.textContent = this.c.im.toFixed(4);
     document.getElementById('val-iters')!.textContent = this.maxIters.toString();
-    document.getElementById('active-dataset-tag')!.textContent = ${entry.filename} ();
+    document.getElementById('active-dataset-tag')!.textContent = `${entry.filename} (${entry.title})`;
 
     // Update active highlight in list
     const cards = document.querySelectorAll('.dataset-card');
@@ -274,7 +267,7 @@ class JuliaApp {
 
       const zx = this.center[0] + nx * (3.4 / this.zoom);
       const zy = this.center[1] + ny * (3.4 / this.zoom);
-      document.getElementById('hud-z')!.textContent = ${zx >= 0 ? '+' : ''} i;
+      document.getElementById('hud-z')!.textContent = `${zx.toFixed(3)} ${zy >= 0 ? '+' : '-'} ${Math.abs(zy).toFixed(3)}i`;
 
       if (!this.isDragging) return;
       const dx = e.clientX - this.lastMouseX;
@@ -328,10 +321,10 @@ class JuliaApp {
   }
 
   private updateHud() {
-    const crStr = ${this.c.re >= 0 ? '+' : ''};
-    const ciStr = ${this.c.im >= 0 ? '+' : ''}i;
-    document.getElementById('hud-c')!.textContent = ${crStr} ;
-    document.getElementById('hud-zoom')!.textContent = ${this.zoom.toFixed(2)}x;
+    const crStr = `${this.c.re >= 0 ? '+' : ''}${this.c.re.toFixed(3)}`;
+    const ciStr = `${this.c.im >= 0 ? '+' : ''}${this.c.im.toFixed(3)}i`;
+    document.getElementById('hud-c')!.textContent = `${crStr} ${ciStr}`;
+    document.getElementById('hud-zoom')!.textContent = `${this.zoom.toFixed(2)}x`;
   }
 
   private renderLoop(timestamp: number) {
@@ -366,6 +359,7 @@ class JuliaApp {
     gl.uniform1f(this.uZoomLoc, this.zoom);
     gl.uniform1i(this.uMaxItersLoc, this.maxIters);
     gl.uniform1i(this.uPaletteModeLoc, this.paletteMode);
+    gl.uniform1i(this.uRenderModeLoc, this.renderMode === 'filled' ? 0 : this.renderMode === 'boundary' ? 1 : 2);
     gl.uniform1f(this.uTimeLoc, timestamp * 0.001);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -375,7 +369,7 @@ class JuliaApp {
 
   private exportImage() {
     const link = document.createElement('a');
-    link.download = julia_.png;
+    link.download = 'julia-set.png';
     link.href = this.canvas.toDataURL('image/png');
     link.click();
   }

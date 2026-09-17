@@ -1,12 +1,12 @@
 ﻿<!DOCTYPE html>
-<html lang=en>
+<html lang="en">
 <head>
-  <meta charset=UTF-8>
-  <meta name=viewport content=width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Julia Set Explorer HD | Complex Dynamics</title>
-  <link rel=preconnect href=https://fonts.googleapis.com>
-  <link rel=preconnect href=https://fonts.gstatic.com crossorigin>
-  <link href=https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap rel=stylesheet>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg-glass: rgba(18, 22, 34, 0.82);
@@ -234,6 +234,14 @@
       color: var(--accent-cyan);
     }
 
+    .control-help {
+      font-size: 10px;
+      line-height: 1.45;
+      color: var(--text-muted);
+      margin-top: -2px;
+      padding-left: 2px;
+    }
+
     input[type=range] {
       -webkit-appearance: none;
       width: 100%;
@@ -403,111 +411,114 @@
   </style>
 </head>
 <body>
-  <div id=canvas-container>
-    <canvas id=julia-canvas></canvas>
+  <div id="canvas-container">
+    <canvas id="julia-canvas"></canvas>
   </div>
 
   <!-- Header HUD -->
-  <header class=hud-header>
-    <div class=badge-icon>J</div>
-    <div class=hud-title-group>
+  <header class="hud-header">
+    <div class="badge-icon">J</div>
+    <div class="hud-title-group">
       <h1>Julia Set Explorer HD</h1>
-      <p id=active-dataset-tag>J_TEST04.DAT (Douady's Rabbit)</p>
+      <p id="active-dataset-tag">J_TEST04.DAT (Douady's Rabbit)</p>
     </div>
   </header>
 
   <!-- Live Cursor & Coordinate HUD -->
-  <div class=hud-coords>
-    <span>c = <b id=hud-c>-0.100 + 0.800i</b></span>
-    <span>z = <b id=hud-z>0.000 + 0.000i</b></span>
-    <span>zoom = <b id=hud-zoom>1.00x</b></span>
-    <span>FPS: <b id=hud-fps>60</b></span>
+  <div class="hud-coords">
+    <span>c = <b id="hud-c">-0.100 + 0.800i</b></span>
+    <span>z = <b id="hud-z">0.000 + 0.000i</b></span>
+    <span>zoom = <b id="hud-zoom">1.00x</b></span>
+    <span>FPS: <b id="hud-fps">60</b></span>
   </div>
 
   <!-- Open Sidebar Toggle Button -->
-  <button id=btn-toggle-sidebar class=btn-panel-toggle>
-    <span>☰ Settings & Datasets</span>
+  <button id="btn-toggle-sidebar" class="btn-panel-toggle">
+    <span>☰ Settings &amp; Datasets</span>
   </button>
 
   <!-- Sidebar Panel -->
-  <aside id=sidebar class=sidebar-panel>
-    <div class=panel-header>
-      <h2>Controls & Dynamics</h2>
-      <button id=btn-close-sidebar class=btn-icon>✕</button>
+  <aside id="sidebar" class="sidebar-panel">
+    <div class="panel-header">
+      <h2>Controls &amp; Dynamics</h2>
+      <button id="btn-close-sidebar" class="btn-icon">✕</button>
     </div>
 
-    <div class=panel-content>
+    <div class="panel-content">
       <!-- Render Mode -->
-      <div class=control-row>
-        <div class=section-title>Render Mode</div>
-        <div class=btn-group id=mode-group>
-          <button data-mode=filled class=active>Filled Set</button>
-          <button data-mode=boundary>Boundary</button>
-          <button data-mode=hybrid>Overlay</button>
+      <div class="control-row">
+        <div class="section-title">Render Mode</div>
+        <div class="btn-group" id="mode-group">
+          <button data-mode="filled" class="active">Filled Set</button>
+          <button data-mode="boundary">Boundary</button>
+          <button data-mode="hybrid">Overlay</button>
         </div>
       </div>
 
       <!-- Color Palette -->
-      <div class=control-row>
-        <div class=section-title>Color Palette</div>
-        <div class=btn-group id=palette-group style=grid-template-columns: repeat(4, 1fr);>
-          <button data-palette=classic class=active>1990s</button>
-          <button data-palette=fire>Fire</button>
-          <button data-palette=ocean>Ocean</button>
-          <button data-palette=neon>Neon</button>
+      <div class="control-row">
+        <div class="section-title">Color Palette</div>
+        <div class="btn-group" id="palette-group" style="grid-template-columns: repeat(4, 1fr);">
+          <button data-palette="classic" class="active">1990s</button>
+          <button data-palette="fire">Fire</button>
+          <button data-palette="ocean">Ocean</button>
+          <button data-palette="neon">Neon</button>
         </div>
       </div>
 
       <!-- Max Iterations Slider -->
-      <div class=control-row>
+      <div class="control-row">
         <label>
           <span>Max Iterations</span>
-          <span id=val-iters class=val>50</span>
+          <span id="val-iters" class="val">50</span>
         </label>
-        <input type=range id=slider-iters min=10 max=600 step=5 value=50>
+        <input type="range" id="slider-iters" min="10" max="600" step="5" value="50" />
+        <div class="control-help">Higher values trace finer detail; lower values are faster and more blocky.</div>
       </div>
 
       <!-- Real Part Slider -->
-      <div class=control-row>
+      <div class="control-row">
         <label>
           <span>Real(c)</span>
-          <span id=val-cr class=val>-0.1000</span>
+          <span id="val-cr" class="val">-0.1000</span>
         </label>
-        <input type=range id=slider-cr min=-2.0 max=2.0 step=0.0005 value=-0.1>
+        <input type="range" id="slider-cr" min="-2.0" max="2.0" step="0.0005" value="-0.1" />
+        <div class="control-help">Real(c) is the horizontal part of the complex parameter, changing the fractal’s left-right shape.</div>
       </div>
 
       <!-- Imaginary Part Slider -->
-      <div class=control-row>
+      <div class="control-row">
         <label>
           <span>Imag(c)</span>
-          <span id=val-ci class=val>0.8000</span>
+          <span id="val-ci" class="val">0.8000</span>
         </label>
-        <input type=range id=slider-ci min=-2.0 max=2.0 step=0.0005 value=0.8>
+        <input type="range" id="slider-ci" min="-2.0" max="2.0" step="0.0005" value="0.8" />
+        <div class="control-help">Imag(c) is the vertical part of the parameter, shifting the pattern up and down.</div>
       </div>
 
       <!-- Benchmark Datasets Browser -->
-      <div class=control-row>
-        <div class=section-title>
+      <div class="control-row">
+        <div class="section-title">
           <span>Datasets (35 Classical Presets)</span>
         </div>
-        <div class=dataset-list id=dataset-container></div>
+        <div class="dataset-list" id="dataset-container"></div>
       </div>
 
       <!-- Actions -->
-      <div class=action-grid>
-        <button id=btn-reset-view class=btn-action>Reset View</button>
-        <button id=btn-export-png class=btn-action primary>Export 4K PNG</button>
+      <div class="action-grid">
+        <button id="btn-reset-view" class="btn-action">Reset View</button>
+        <button id="btn-export-png" class="btn-action primary">Export 4K PNG</button>
       </div>
 
       <!-- Trajectory Playback -->
-      <div class=action-grid>
-        <button id=btn-play-anim class=btn-action style=grid-column: span 2;>
+      <div class="action-grid">
+        <button id="btn-play-anim" class="btn-action" style="grid-column: span 2;">
           ▶ Auto-Morph Trajectory (ANIM01)
         </button>
       </div>
     </div>
   </aside>
 
-  <script type=module src=/src/main.ts></script>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

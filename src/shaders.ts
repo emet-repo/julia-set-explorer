@@ -1,4 +1,4 @@
-﻿export const VERTEX_SHADER_SRC = #version 300 es
+﻿export const VERTEX_SHADER_SRC = `#version 300 es
 in vec2 a_position;
 out vec2 v_uv;
 
@@ -6,9 +6,9 @@ void main() {
   v_uv = (a_position + 1.0) * 0.5;
   gl_Position = vec4(a_position, 0.0, 1.0);
 }
-;
+`;
 
-export const FRAGMENT_SHADER_SRC = #version 300 es
+export const FRAGMENT_SHADER_SRC = `#version 300 es
 precision highp float;
 
 in vec2 v_uv;
@@ -20,6 +20,7 @@ uniform vec2 u_center;
 uniform float u_zoom;
 uniform int u_max_iters;
 uniform int u_palette_mode; // 0: Classic 1990s, 1: Fire, 2: Ocean, 3: Neon
+uniform int u_render_mode; // 0: Filled, 1: Boundary, 2: Hybrid
 uniform float u_time;
 
 // Authentic 1990s Borland 7-color / 28-shade escape palette
@@ -90,7 +91,14 @@ void main() {
     iter = i + 1;
   }
 
-  if (iter >= u_max_iters) {
+  bool isInside = iter >= u_max_iters;
+  bool isBoundary = !isInside && iter >= max(1, u_max_iters - 8);
+
+  if (u_render_mode == 1 && !isBoundary) {
+    outColor = vec4(0.01, 0.02, 0.05, 1.0);
+  } else if (u_render_mode == 2 && !isBoundary && !isInside) {
+    outColor = vec4(0.01, 0.02, 0.05, 1.0);
+  } else if (isInside) {
     // Inside the filled Julia set (Kc)
     outColor = vec4(0.01, 0.02, 0.05, 1.0);
   } else if (u_palette_mode == 0) {
@@ -107,4 +115,4 @@ void main() {
     outColor = vec4(col, 1.0);
   }
 }
-;
+`;
